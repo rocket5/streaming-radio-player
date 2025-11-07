@@ -14,14 +14,21 @@ const CONFIG = {
     // Change this to your stream URL
     // For HLS streams, use .m3u8 URL
     // For MP3 streams, use direct MP3 stream URL
-    streamUrl: 'http://peridot.streamguys.com:5040/live',
 
-    // Stream type: 'audio/mpeg' for MP3, 'application/x-mpegURL' for HLS
-    streamType: 'audio/mpeg', // Change to 'application/x-mpegURL' for HLS streams
+    // YOUR STREAM (may need verification):
+    // streamUrl: 'http://peridot.streamguys.com:5040/live',
+    // streamType: 'audio/mpeg',
 
-    // Example configurations:
-    // MP3 Stream: { streamUrl: 'http://peridot.streamguys.com:5040/live', streamType: 'audio/mpeg' }
-    // HLS Stream: { streamUrl: 'https://your-stream.m3u8', streamType: 'application/x-mpegURL' }
+    // TEMPORARY TEST STREAM (known working - BBC World Service):
+    streamUrl: 'http://stream.live.vc.bbcmedia.co.uk/bbc_world_service',
+    streamType: 'audio/mpeg',
+
+    // MORE TEST STREAMS YOU CAN TRY:
+    // NPR: 'https://npr-ice.streamguys1.com/live.mp3' (type: 'audio/mpeg')
+    // WNYC: 'https://fm939.wnyc.org/wnycfm' (type: 'audio/mpeg')
+    // SomaFM: 'https://ice1.somafm.com/groovesalad-128-mp3' (type: 'audio/mpeg')
+
+    // HLS Example: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8' (type: 'application/x-mpegURL')
 
     // Reconnection settings
     reconnectAttempts: 5,
@@ -115,16 +122,18 @@ class RadioPlayer {
             }
         });
 
-        // Set up the source
-        this.player.src({
-            src: CONFIG.streamUrl,
-            type: CONFIG.streamType
-        });
+        // DON'T set source on init - wait for user to click play
+        // This prevents the loading spinner from appearing immediately
+        // this.player.src({
+        //     src: CONFIG.streamUrl,
+        //     type: CONFIG.streamType
+        // });
 
         // Video.js event listeners
         this.player.on('loadstart', () => {
             console.log('Stream loading started');
-            this.setLoadingState(true);
+            // Don't show loading on initial loadstart, only when actually trying to play
+            // this.setLoadingState(true);
         });
 
         this.player.on('canplay', () => {
@@ -258,6 +267,16 @@ class RadioPlayer {
         try {
             this.setLoadingState(true);
             this.updateConnectionStatus('loading');
+
+            // Set source if not already set
+            const currentSrc = this.player.currentSrc();
+            if (!currentSrc || currentSrc === '') {
+                console.log('Setting stream source:', CONFIG.streamUrl);
+                this.player.src({
+                    src: CONFIG.streamUrl,
+                    type: CONFIG.streamType
+                });
+            }
 
             // Try to play
             const playPromise = this.player.play();
